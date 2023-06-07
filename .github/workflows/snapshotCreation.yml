@@ -28,6 +28,6 @@ jobs:
         PRERELEASE: true
         PRERELEASE_SUFFIX: snapshot
         WITH_V: true
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.SNAPSHOTCREATION }}
         DEFAULT_BUMP: patch
         VERBOSE: false
