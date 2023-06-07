@@ -1,0 +1,33 @@
+name: Create/bump the snapshot version
+run-name: ${{ github.actor }} is creating/bumping the snapshot version
+on:
+  workflow_call:
+
+jobs:
+  create-snapshot:
+    name: Create/Bump snapshot
+    runs-on: ubuntu-latest
+
+    steps:
+    # Error: if release request does not come from main
+    - name: Error if release request is not coming from main branch
+      if: github.ref_name != 'main'
+      run: echo "Attempt to run pipeline from branch that is not main"; exit 1
+
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  
+    
+    # Tag deployment revision
+    - name: Create snapshot tag
+      uses: anothrNick/github-tag-action@1.62.0
+      id: create-snapshot-tag
+      env:
+        RELEASE_BRANCHES: none
+        PRERELEASE: true
+        PRERELEASE_SUFFIX: snapshot
+        WITH_V: true
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        DEFAULT_BUMP: patch
+        VERBOSE: false
