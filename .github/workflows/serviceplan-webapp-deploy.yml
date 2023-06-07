@@ -1,0 +1,48 @@
+name: serviceplan-webapp-deploy
+run-name: ${{ github.actor }} is running for deploying serviceplan and webapp based on provided inputs
+
+on:
+  workflow_call:
+    inputs:
+      subscriptionId:
+        description: 'Specify Azure subscriptionId'
+        required: true
+        type: string
+      resourceGroupName:
+        description: 'Specify resource group where Azure resources need to deploy'
+        required: true
+        type: string
+      template:
+        description: 'Specify ARM templte which need to deploy'
+        required: true
+        type: string
+      parameters:
+        description: 'Specify parameter file name '
+        required: true
+        type: string
+
+
+jobs:
+  serviceplan-webapp-deploy-:
+   name: Deploy ARM templte resources
+   runs-on: ubuntu-latest
+   steps:
+     - name: Checkout code
+       uses: actions/checkout@v3
+   
+   
+     - uses: azure/login@v1
+       with:
+          creds: ${{ secrets.NAVEEN538_AZURE_CREDENTIALS }}
+
+        # Deploy ARM template
+     - name: Run ARM deploy
+       uses: azure/arm-deploy@v1
+       with:
+          subscriptionId: ${{ inputs.subscriptionId }}
+          resourceGroupName: ${{ inputs.resourceGroupName }}
+          template: ${{ inputs.template }}
+          parameters: ${{ inputs.parameters }}
+
+
+          
