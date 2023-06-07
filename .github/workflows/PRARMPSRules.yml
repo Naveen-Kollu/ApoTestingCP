@@ -1,0 +1,34 @@
+name: Validation of ARM templates with PSRules
+run-name: ${{ github.actor }} is running ARM templates validation with PSRules on PR
+
+on:
+  workflow_call:
+    inputs:
+      modules:
+        description: 'Specify the modules of PSRules need to apply on ARM Templates'
+        required: false
+        type: string
+        default: 'PSRule.Rules.Azure'
+      inputPath:
+        description: 'SPecify the path of ARM temples need to be tested'
+        required: true
+        type: string
+
+
+jobs:
+  lint:
+   if: ${{ inputs.inputPath != null && inputs.inputPath != '' }}
+   
+   name: Checks ARM Templates quality
+   runs-on: ubuntu-latest
+   steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+  # Task 2: Checks ARM Templates quality
+    - name: Analyze Azure template files
+      uses: microsoft/ps-rule@v2.8.1
+      with:
+          modules: ${{ inputs.modules }}
+          inputPath: ${{ inputs.inputPath }}
+          
