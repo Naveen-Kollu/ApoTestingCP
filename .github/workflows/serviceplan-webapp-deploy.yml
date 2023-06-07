@@ -4,6 +4,11 @@ run-name: ${{ github.actor }} is running for deploying serviceplan and webapp ba
 on:
   workflow_call:
     inputs:
+      environment:
+        description: 'Deployment environment'
+        default: 'azure538'
+        required: false
+        type: string
       subscriptionId:
         description: 'Specify Azure subscriptionId'
         required: true
@@ -26,6 +31,7 @@ jobs:
   serviceplan-webapp-deploy-:
    name: Deploy ARM templte resources
    runs-on: ubuntu-latest
+   environment: ${{ inputs.environment }}
    steps:
      - name: Checkout code
        uses: actions/checkout@v3
