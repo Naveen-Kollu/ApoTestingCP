@@ -54,17 +54,6 @@ resource "azurerm_kubernetes_cluster" "Team2KubCluName" {
     load_balancer_sku = "standard"
   }
 
-
-
-  linux_profile {
-    admin_username = "adminuser"
-    ssh_key {
-	  key_data = file("/home/runner/.ssh/id_rsa.pub") 
-    }
-  }
-
-
-
   tags = {
     Environment = "Dev/Test"
   }
