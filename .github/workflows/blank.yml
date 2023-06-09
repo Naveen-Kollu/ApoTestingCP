@@ -1,0 +1,64 @@
+name: kubClu-Creation-Apply
+run-name: ${{ github.actor }} Create Kubernetes Cluster
+
+on:
+  workflow_run:
+    workflows: ["Validate-TerrScpt-kubClu-Creation" ]
+    branches: [ main ]
+    types:
+      - completed
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    environment: 'azure538'
+    defaults:
+      run:
+        working-directory: KubernetesCluster
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        
+      - name: Switch to KubernetesCluster folder
+        run: echo "Switching to KubernetesCluster folder"  
+        
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.4.5
+          
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_538 }}    
+      
+      - name: List all files under KubernetesCluster
+        run: ls -lrt 
+
+      - name: Terraform Init
+        run: terraform init
+      
+      - name: Terraform fmt
+        run: terraform validate
+
+      - name: Terraform validate
+        run: terraform validate
+        
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
+
+      - name: Archive Terraform state files
+        run: |
+          mkdir -p state-files
+          cp terraform.tfstate state-files/
+          cp terraform.tfstate.backup state-files/
+      
+      - name: Upload Terraform state files
+        uses: actions/upload-artifact@v2
+        with:
+          name: terraform-state-files
+          path: KubernetesCluster/state-files
