@@ -45,5 +45,17 @@ jobs:
         
       - name: Terraform Plan
         run: terraform plan -out=tfplan
+        
+      - name: Archive Terraform state files
+        run: |
+          mkdir -p state-files
+          cp terraform.tfstate state-files/
+          cp terraform.tfstate.backup state-files/
+      
+      - name: Upload Terraform state files
+        uses: actions/upload-artifact@v2
+        with:
+          name: terraform-state-files
+          path: KubernetesCluster/state-files
 
       
