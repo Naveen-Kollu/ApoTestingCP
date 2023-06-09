@@ -26,8 +26,11 @@ jobs:
       - name: Switch to Kubernetes folder
         run: cd KubernetesCluster  # Change to your KubernetesCluster folder path 
         
+      - name: second switch to KubernetesCluster
+        run: cd KubernetesCluster
+        
       - name: List all files under KubernetesCluster
-        run: ls -lrt  
+        run: ls -lrt 
 
       - name: Terraform Init
         run: terraform init
