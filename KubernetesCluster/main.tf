@@ -59,7 +59,7 @@ resource "azurerm_kubernetes_cluster" "Team2KubCluName" {
   linux_profile {
     admin_username = "adminuser"
     ssh_key {
-      key_data = file("~/.ssh/id_rsa.pub")
+	  key_data = file("/home/runner/.ssh/id_rsa.pub") 
     }
   }
 
