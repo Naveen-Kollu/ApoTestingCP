@@ -8,10 +8,17 @@ on:
 jobs:
   terraform:
     runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: KubernetesCluster
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        
+      - name: Switch to KubernetesCluster folder
+        run: echo "Switching to KubernetesCluster folder"  
         
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
@@ -25,7 +32,6 @@ jobs:
           
               
       - name: List all files under KubernetesCluster
-        working-directory: ./KubernetesCluster
         run: ls -lrt 
 
       - name: Terraform Init
