@@ -12,6 +12,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        
+      - name: Switch to KubernetesCluster folder
+        id: switch-folder
+        run: |
+          echo "::set-output name=folder-path::$(realpath KubernetesCluster)"  
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
@@ -23,11 +28,7 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS_538 }}    
           
-      - name: Switch to KubernetesCluster folder
-        run: |
-          cd KubernetesCluster
-          echo "::set-env name=KUBERNETES_FOLDER_PATH::$(pwd)"  # Change to your KubernetesCluster folder path 
-        
+              
       - name: List all files under KubernetesCluster
         run: ls -lrt 
 
