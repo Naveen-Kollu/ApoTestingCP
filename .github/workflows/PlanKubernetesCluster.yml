@@ -4,11 +4,6 @@ run-name: ${{ github.actor }} is running for see the Kubernetes cluster plan bef
 on:
   workflow_call:
     inputs:
-      environment:
-        description: 'Deployment environment'
-        default: 'azure538'
-        required: false
-        type: string
       kubernetestffilesfolder:
         description: 'Kubernetes folder which is having all tf files'
         required: true
@@ -18,7 +13,6 @@ on:
 jobs:
   terraform:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
     defaults:
       run:
         working-directory: ${{ inputs.kubernetestffilesfolder }}
@@ -33,13 +27,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: 1.4.5
-          
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.NAVEEN538_AZURE_CREDENTIALS }}   
-                   
+          terraform_version: 1.4.5                 
         
       - name: Copy tfstate file to kubernetestffilesfolder
         run: |
