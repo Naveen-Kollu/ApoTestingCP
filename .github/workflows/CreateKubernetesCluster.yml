@@ -1,9 +1,13 @@
-name: Validate-TerrScpt-kubClu-Creation
+name: Create Kubernetes Cluster
+run-name: ${{ github.actor }} is running for creating Kubernetes cluster on Azure
 
 on:
-  push:
-    branches:
-      - main
+  workflow_call:
+    inputs:
+      kubernetestffilesfolder:
+        description: 'Kubernetes folder which is having all tf files'
+        required: true
+        type: string
 
 jobs:
   terraform:
@@ -18,7 +22,7 @@ jobs:
         uses: actions/checkout@v2
         
       - name: Switch to KubernetesCluster folder
-        run: echo "Switching to KubernetesCluster folder"  
+        run: echo "Switching to ${{ inputs.kubernetestffilesfolder }} folder"  
         
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
@@ -31,7 +35,7 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS_538 }}    
           
               
-      - name: List all files under KubernetesCluster
+      - name: List all files under kubernetestffilesfolder
         run: ls -lrt 
 
       - name: Terraform Init
