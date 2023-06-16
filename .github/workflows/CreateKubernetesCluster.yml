@@ -66,7 +66,7 @@ jobs:
       - name: Copy tfstate file to subfolder
         run: |
           mkdir -p tfstatefiles
-          cp terraform.tfstate tfstatefiles/
+          cp *.tf tfstatefiles/
 
       - name: Commit and push tfstate changes
         run: |
