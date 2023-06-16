@@ -70,7 +70,7 @@ jobs:
 
       - name: Commit and push tfstate changes
         run: |
-          git add tfstatefiles/terraform.tfstate
+          git add tfstatefiles/*.*
           git commit -m "Add terraform.tfstate file"
           git push
         
