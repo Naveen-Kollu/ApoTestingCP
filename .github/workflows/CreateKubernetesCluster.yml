@@ -46,11 +46,15 @@ jobs:
       - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.NAVEEN538_AZURE_CREDENTIALS }}    
+          creds: ${{ secrets.NAVEEN538_AZURE_CREDENTIALS }}   
+                   
+        
+      - name: Copy tfstate file to kubernetestffilesfolder
+        run: |
+          cp tfstatefiles/terraform.tfstate .
           
-              
       - name: List all files under kubernetestffilesfolder
-        run: ls -lrt 
+        run: ls -lrt   
 
       - name: Terraform Init
         run: terraform init
@@ -75,7 +79,7 @@ jobs:
       - name: Copy tfstate file to subfolder
         run: |
           mkdir -p tfstatefiles
-          cp terraform.tfstate tfstatefiles/
+          cp -f terraform.tfstate tfstatefiles/
 
       - name: Commit and push tfstate changes
         run: |
