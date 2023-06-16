@@ -4,16 +4,11 @@ run-name: ${{ github.actor }} is running for see the Kubernetes cluster plan bef
 on:
   workflow_call:
     inputs:
-      environment:
-        description: 'Deployment environment'
-        default: 'azure538'
-        required: false
-        type: string
       kubernetestffilesfolder:
         description: 'Kubernetes folder which is having all tf files'
         required: true
         type: string
-      
+   
 
 jobs:
   terraform:
