@@ -56,8 +56,12 @@ jobs:
       - name: Terraform Plan
         run: terraform plan -out=tfplan
         
-      - name: Terraform apply
-        run: terraform apply -auto-approve 
+      
+        
+      - name: Set up Git
+        run: |
+          git config --global user.name "naveen kumar"
+          git config --global user.email "naveen538.k@gmail.com"
         
       - name: Copy tfstate file to subfolder
         run: |
