@@ -56,5 +56,19 @@ jobs:
       - name: Terraform Plan
         run: terraform plan -out=tfplan
         
+      - name: Terraform apply
+        run: terraform apply 
+        
+      - name: Copy tfstate file to subfolder
+        run: |
+          mkdir -p tfstatefiles
+          cp terraform.tfstate tfstatefiles/
+
+      - name: Commit and push tfstate changes
+        run: |
+          git add tfstatefiles/terraform.tfstate
+          git commit -m "Add terraform.tfstate file"
+          git push
+        
 
       
