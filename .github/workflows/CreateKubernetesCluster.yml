@@ -15,7 +15,7 @@ jobs:
     
     defaults:
       run:
-        working-directory: KubernetesCluster
+        working-directory: ${{ inputs.kubernetestffilesfolder }}
 
     steps:
       - name: Checkout code
