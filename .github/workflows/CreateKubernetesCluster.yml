@@ -57,7 +57,7 @@ jobs:
         run: terraform plan -out=tfplan
         
       - name: Terraform apply
-        run: terraform apply 
+        run: terraform apply -auto-approve 
         
       - name: Copy tfstate file to subfolder
         run: |
