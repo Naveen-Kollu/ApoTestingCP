@@ -13,6 +13,14 @@ on:
         description: 'Kubernetes folder which is having all tf files'
         required: true
         type: string
+      gituser:
+        description: 'Kubernetes folder which is having all tf files'
+        required: true
+        type: string  
+      gitemailid:
+        description: 'Kubernetes folder which is having all tf files'
+        required: true
+        type: string
 
 jobs:
   terraform:
@@ -54,23 +62,22 @@ jobs:
         run: terraform validate
         
       - name: Terraform Plan
-        run: terraform plan -out=tfplan
-        
+        run: terraform plan -out=tfplan      
       
         
       - name: Set up Git
         run: |
-          git config --global user.name "naveen kumar"
-          git config --global user.email "naveen538.k@gmail.com"
+          git config --global user.name ${{ inputs.gituser }}
+          git config --global user.email ${{ inputs.gitemailid }}
         
       - name: Copy tfstate file to subfolder
         run: |
           mkdir -p tfstatefiles
-          cp *.tf tfstatefiles/
+          cp terraform.tfstate tfstatefiles/
 
       - name: Commit and push tfstate changes
         run: |
-          git add tfstatefiles/*.*
+          git add tfstatefiles/terraform.tfstate
           git commit -m "Add terraform.tfstate file"
           git push
         
