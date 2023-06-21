@@ -91,5 +91,5 @@ jobs:
       run: docker login -u 'naveen538' -p 'Namo@0820'    
 
     - name: Push Docker Image to Docker Hub
-      run: docker push naveen538/${{ inputs.image }}
+      run: docker push naveen538/${{ inputs.image }}:${{ steps.string.outputs.lowercase }}
    
