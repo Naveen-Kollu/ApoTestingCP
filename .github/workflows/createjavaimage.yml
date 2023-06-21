@@ -78,14 +78,12 @@ jobs:
       uses: ASzc/change-string-case-action@v5
       with:
         string: ${{ steps.tag.outputs.latest-tag }}
-
-    - name: Tag Docker image
-      run: docker tag $IMAGE:latest $IMAGE:$project_version
-      env:
-#        project_version: ${{ steps.get-version.outputs.version }}
-         project_version: ${{ steps.string.outputs.lowercase }}
-         IMAGE: ${{ inputs.image }}
         
+    - name: Tag Docker image
+      run: docker tag ${{ inputs.image }} ${{ inputs.image }}:$project_version
+      env:
+        IMAGE: docker.io/naveen538/${{ inputs.image }}  
+        project_version: ${{ steps.string.outputs.lowercase }}      
         
     - name: Log in to Docker Hub
       run: docker login -u 'naveen538' -p 'Namo@0820'    
