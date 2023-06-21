@@ -1,0 +1,95 @@
+name: Build and Publish Java microservice to Artifact Registry
+run-name: ${{ github.actor }} is running Build and Publish of Java microservice to Artifact Registry
+
+on:
+  workflow_call:
+    inputs:
+      language:
+        description: 'Programming language used to run this build'
+        required: true
+        type: string
+      release:
+        description: 'Boolean indicating if this is release or snapshot version'
+        default: false
+        required: false
+        type: boolean
+      image:
+        description: 'Name of Docker image'
+        required: true
+        type: string
+      version:
+        description: 'Provide Java version which should be used for compile and build'
+        required: true
+        default: '17'
+        type: string
+      module-name: 
+        description: 'Java module to build'
+        required: false
+        type: string
+        default: 'single'
+    
+
+jobs:
+  build:
+    if: ${{ inputs.language == 'Java' }}
+
+    name: Build and Publish image
+    runs-on: ubuntu-latest
+
+    steps:
+    # Setup environment
+    - name: Check that pipeline request is coming from main branch
+      if: github.ref_name != 'main'
+      run: echo "Attempt to run pipeline from branch that is not main"; exit 1
+
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+#        persist-credentials: false
+        fetch-depth: 0
+        
+    # Java Build
+    - name: Setup JDK ${{ inputs.version }}
+      uses: actions/setup-java@v3.6.0
+      with:
+        java-version: ${{ inputs.version }}
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Build with Maven and create Docker image
+      if: inputs.module-name == 'single'
+      run: mvn compile jib:dockerBuild
+
+    - name: Build multi-module app with Maven and create Docker image
+      if: inputs.module-name != 'single'
+      run: |
+        mvn --projects :${{ inputs.module-name }} --also-make clean install &&
+        mvn --projects :${{ inputs.module-name }} compile jib:dockerBuild
+
+
+    - name: Get latest Repository tag
+      id: tag
+      run: |
+        LATEST_TAG=`git describe --tags --abbrev=0`
+        echo "latest-tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+
+    - name: Change tag to lowercase
+      id: string
+      uses: ASzc/change-string-case-action@v5
+      with:
+        string: ${{ steps.tag.outputs.latest-tag }}
+
+    - name: Tag Docker image
+      run: docker tag $IMAGE $IMAGE_LOCATION:$project_version
+      env:
+#        project_version: ${{ steps.get-version.outputs.version }}
+        project_version: ${{ steps.string.outputs.lowercase }}
+        IMAGE: ${{ inputs.image }}
+        IMAGE_LOCATION: ${{ inputs.full-image }}
+        
+    - name: Log in to Docker Hub
+      run: docker login -u 'naveen538' -p 'Namo@0820'    
+
+    - name: Push Docker Image to Docker Hub
+      run: docker push naveen538/${{ inputs.image }}:${{ steps.string.outputs.lowercase }}
+   
