@@ -79,17 +79,17 @@ jobs:
       with:
         string: ${{ steps.tag.outputs.latest-tag }}
 
-  #  - name: Tag Docker image
-   #   run: docker tag $IMAGE $IMAGE:$project_version
-    #  env:
+    - name: Tag Docker image
+      run: docker tag $IMAGE $IMAGE:$project_version
+      env:
 #        project_version: ${{ steps.get-version.outputs.version }}
-     #   project_version: ${{ steps.string.outputs.lowercase }}
-      #  IMAGE: ${{ inputs.image }}
+         project_version: ${{ steps.string.outputs.lowercase }}
+         IMAGE: ${{ inputs.image }}
         
         
     - name: Log in to Docker Hub
       run: docker login -u 'naveen538' -p 'Namo@0820'    
 
     - name: Push Docker Image to Docker Hub
-      run: docker push naveen538/${{ inputs.image }}
+      run: docker push naveen538/${{ inputs.image }}:${{ steps.string.outputs.lowercase }}
    
