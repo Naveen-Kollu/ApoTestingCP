@@ -83,9 +83,8 @@ jobs:
       run: docker login -u 'naveen538' -p 'Namo@0820'     
         
     - name: Tag Docker image
-      run: docker tag ${{ inputs.image }} $IMAGE_LOCATION:$project_version
+      run: docker tag naveen538/${{ inputs.image }} naveen538/${{ inputs.image }}:${{ steps.string.outputs.lowercase }}
       env:
-        IMAGE_LOCATION: docker.io/naveen538/${{ inputs.image }}  
         project_version: ${{ steps.string.outputs.lowercase }}      
         
        
