@@ -91,10 +91,34 @@ jobs:
         dockeruser: ${{ secrets.DOCKERUSER }}
         dockerpassword: ${{ secrets.DOCKERPASSWORD }}
         
+    - name: Check if Docker image exists
+      id: check-image-exists
+      run: |
+        if docker image inspect $dockeruser/${{ inputs.image }} &> /dev/null; then
+          echo "::set-output name=image_exists::true"
+        else
+          echo "::set-output name=image_exists::false"
+        fi
+      env:
+        dockeruser: ${{ secrets.DOCKERUSER }}
+
+    - name: Check if Docker image has latest tag
+      id: check-latest-tag
+      run: |
+        if docker image inspect $dockeruser/${{ inputs.image }}:latest &> /dev/null; then
+          echo "::set-output name=has_latest_tag::true"
+        else
+          echo "::set-output name=has_latest_tag::false"
+        fi
+      env:
+        dockeruser: ${{ secrets.DOCKERUSER }}
+
     - name: Tag Docker image
       run: |
         docker tag $dockeruser/${{ inputs.image }} $dockeruser/${{ inputs.image }}:$project_version
+        if ${{ steps.check-image-exists.outputs.image_exists }}; then
         docker tag $dockeruser/${{ inputs.image }} $dockeruser/${{ inputs.image }}:latest
+        fi
       env:
         project_version: ${{ steps.string.outputs.lowercase }}
         dockeruser: ${{ secrets.DOCKERUSER }}
