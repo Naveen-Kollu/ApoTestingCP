@@ -63,9 +63,17 @@ jobs:
       env:
         dockeruser: ${{ secrets.DOCKERUSER }}
         dockerpassword: ${{ secrets.DOCKERPASSWORD }}
+    - name: Get Docker Image Digest
+      id: get-digest
+      run: |
+         DIGEST=$(curl -s -H "Authorization: Bearer ${{ secrets.DOCKERHUB_TOKEN }}" "https://registry.hub.docker.com/v2/repositories/$dockeruser/${{ inputs.image }}/tags/latest" | jq -r '.images[0].digest')
+         echo "::set-output name=digest::$DIGEST"
+      env:
+        dockeruser: ${{ secrets.DOCKERUSER }}    
 
     - name: Pull Docker image
-      run: docker pull $dockeruser/${{ inputs.image }}:${{ inputs.imageversion }}
+      run: docker pull $dockeruser/${{ inputs.image }}@${{ steps.get-digest.outputs.digest }}
+      #run: docker pull $dockeruser/${{ inputs.image }}:${{ inputs.imageversion }}
       env:
         dockeruser: ${{ secrets.DOCKERUSER }}
       
