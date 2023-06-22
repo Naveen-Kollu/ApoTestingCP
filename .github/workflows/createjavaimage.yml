@@ -27,6 +27,15 @@ on:
         required: false
         type: string
         default: 'single'
+      dockeruser: 
+        description: 'docker user name'
+        required: true
+        type: string
+      dockerpassword: 
+        description: 'docker password'
+        required: true
+        type: string
+          
     
 
 jobs:
@@ -80,15 +89,13 @@ jobs:
         string: ${{ steps.tag.outputs.latest-tag }}
         
     - name: Log in to Docker Hub
-      run: docker login -u 'naveen538' -p 'Namo@0820'     
+      run: docker login -u ${{ inputs.dockeruser }} -p ${{ inputs.dockerpassword }}     
         
     - name: Tag Docker image
-      run: docker tag naveen538/${{ inputs.image }} naveen538/${{ inputs.image }}:${{ steps.string.outputs.lowercase }}
+      run: docker tag ${{ inputs.dockeruser }}/${{ inputs.image }} ${{ inputs.dockeruser }}/${{ inputs.image }}:${{ steps.string.outputs.lowercase }}
       env:
-        project_version: ${{ steps.string.outputs.lowercase }}      
-        
-       
-
+        project_version: ${{ steps.string.outputs.lowercase }}    
+      
     - name: Push Docker Image to Docker Hub
-      run: docker push naveen538/${{ inputs.image }}:${{ steps.string.outputs.lowercase }}
+      run: docker push ${{ inputs.dockeruser }}/${{ inputs.image }}:${{ steps.string.outputs.lowercase }}
    
