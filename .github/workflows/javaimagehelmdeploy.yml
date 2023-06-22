@@ -89,4 +89,4 @@ jobs:
         resource-group: ${{ inputs.resourcegroupname }}  
         
     - name: Deploy chart
-      run: helm upgrade --install ${{ inputs.image }}:${{ inputs.imageversion }} ./${{ inputs.chartmodulename }}
+      run: helm upgrade --install ${{ inputs.image }}-${{ inputs.imageversion }} ./${{ inputs.chartmodulename }}
