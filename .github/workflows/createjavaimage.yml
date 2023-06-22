@@ -93,12 +93,8 @@ jobs:
         
     - name: Tag Docker image
       run: |
-        if docker image inspect $dockeruser/${{ inputs.image }}:latest &> /dev/null; then
-           docker tag $dockeruser/${{ inputs.image }} $dockeruser/${{ inputs.image }}:$project_version 
-        else
            docker tag $dockeruser/${{ inputs.image }} $dockeruser/${{ inputs.image }}:$project_version 
            docker tag $dockeruser/${{ inputs.image }} $dockeruser/${{ inputs.image }}:latest
-        fi
       #run: docker tag $dockeruser/${{ inputs.image }} $dockeruser/${{ inputs.image }}:${{ steps.string.outputs.lowercase }}
       env:
         project_version: ${{ steps.string.outputs.lowercase }}
