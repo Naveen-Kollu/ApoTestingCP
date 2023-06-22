@@ -92,10 +92,7 @@ jobs:
         dockerpassword: ${{ secrets.DOCKERPASSWORD }}
         
     - name: Tag Docker image
-      run: |
-           docker tag $dockeruser/${{ inputs.image }} $dockeruser/${{ inputs.image }}:$project_version 
-           docker tag $dockeruser/${{ inputs.image }} $dockeruser/${{ inputs.image }}:latest
-      #run: docker tag $dockeruser/${{ inputs.image }} $dockeruser/${{ inputs.image }}:${{ steps.string.outputs.lowercase }}
+      run: docker tag $dockeruser/${{ inputs.image }} $dockeruser/${{ inputs.image }}:$project_version
       env:
         project_version: ${{ steps.string.outputs.lowercase }}
         dockeruser: ${{ secrets.DOCKERUSER }}
