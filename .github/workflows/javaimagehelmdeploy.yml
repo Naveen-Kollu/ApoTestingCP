@@ -17,7 +17,8 @@ on:
         type: string
       imageversion:
         description: ' Docker image version'
-        required: true
+        required: false
+        default: 'latestversion'
         type: string  
       helmversion:
         description: 'provide helm version'
