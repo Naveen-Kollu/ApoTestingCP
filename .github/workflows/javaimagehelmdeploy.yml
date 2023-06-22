@@ -15,6 +15,10 @@ on:
         description: 'Name of Docker image'
         required: true
         type: string
+      imageversion:
+        description: ' Docker image version'
+        required: true
+        type: string  
       helmversion:
         description: 'provide helm version'
         required: false
@@ -60,7 +64,7 @@ jobs:
         dockerpassword: ${{ secrets.DOCKERPASSWORD }}
 
     - name: Pull Docker image
-      run: docker pull $dockeruser/${{ inputs.image }}
+      run: docker pull $dockeruser/${{ inputs.image }}:${{ inputs.imageversion }}
       env:
         dockeruser: ${{ secrets.DOCKERUSER }}
       
@@ -77,4 +81,4 @@ jobs:
         resource-group: ${{ inputs.resourcegroupname }}  
         
     - name: Deploy chart
-      run: helm upgrade --install ${{ inputs.image }} ./${{ inputs.chartmodulename }}
+      run: helm upgrade --install ${{ inputs.image }}:${{ inputs.imageversion }} ./${{ inputs.chartmodulename }}
