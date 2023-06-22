@@ -72,8 +72,7 @@ jobs:
         dockeruser: ${{ secrets.DOCKERUSER }}    
 
     - name: Pull Docker image
-      run: docker pull $dockeruser/${{ inputs.image }}@${{ steps.get-digest.outputs.digest }}
-      #run: docker pull $dockeruser/${{ inputs.image }}:${{ inputs.imageversion }}
+      run: docker pull $dockeruser/${{ inputs.image }}:${{ inputs.imageversion }}
       env:
         dockeruser: ${{ secrets.DOCKERUSER }}
       
