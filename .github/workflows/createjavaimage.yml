@@ -91,11 +91,11 @@ jobs:
         dockeruser: ${{ secrets.DOCKERUSER }}
         dockerpassword: ${{ secrets.DOCKERPASSWORD }}
         
-   # - name: Tag Docker image
-    #  run: docker tag $dockeruser/${{ inputs.image }} $dockeruser/${{ inputs.image }}:${{ steps.string.outputs.lowercase }}
-     # env:
-      #  project_version: ${{ steps.string.outputs.lowercase }}
-       # dockeruser: ${{ secrets.DOCKERUSER }}
+    - name: Tag Docker image
+      run: docker tag $dockeruser/${{ inputs.image }} $dockeruser/${{ inputs.image }}:${{ steps.string.outputs.lowercase }}
+      env:
+        project_version: ${{ steps.string.outputs.lowercase }}
+        dockeruser: ${{ secrets.DOCKERUSER }}
       
     - name: Push Docker Image to Docker Hub
       run: docker push $dockeruser/${{ inputs.image }}:${{ steps.string.outputs.lowercase }}
