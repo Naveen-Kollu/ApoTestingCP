@@ -86,19 +86,19 @@ jobs:
         string: ${{ steps.tag.outputs.latest-tag }}
         
     - name: Log in to Docker Hub
-      run: docker login -u ${{ dockeruser }} -p ${{ dockerpassword }}    
+      run: docker login -u $dockeruser -p $dockerpassword    
       env:
         dockeruser: ${{ secrets.DOCKERUSER }}
         dockerpassword: ${{ secrets.DOCKERPASSWORD }}
         
     - name: Tag Docker image
-      run: docker tag ${{ dockeruser }}/${{ inputs.image }} ${{ dockeruser }}/${{ inputs.image }}:${{ steps.string.outputs.lowercase }}
+      run: docker tag $dockeruser/${{ inputs.image }} $dockeruser/${{ inputs.image }}:${{ steps.string.outputs.lowercase }}
       env:
         project_version: ${{ steps.string.outputs.lowercase }}
         dockeruser: ${{ secrets.DOCKERUSER }}
       
     - name: Push Docker Image to Docker Hub
-      run: docker push ${{ dockeruser }}/${{ inputs.image }}:${{ steps.string.outputs.lowercase }}
+      run: docker push $dockeruser/${{ inputs.image }}:${{ steps.string.outputs.lowercase }}
       env:
         dockeruser: ${{ secrets.DOCKERUSER }}
    
