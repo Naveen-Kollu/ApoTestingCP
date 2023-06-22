@@ -27,7 +27,11 @@ on:
         required: false
         type: string
         default: 'single'
-      
+    secrets:
+      DOCKERUSER:
+        required: true  
+      DOCKERPASSWORD:
+        required: true 
           
     
 
