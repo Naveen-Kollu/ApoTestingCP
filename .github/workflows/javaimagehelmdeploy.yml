@@ -1,0 +1,80 @@
+name: Java docker image deploy in kubernetes cluster using helm charts
+run-name: ${{ github.actor }} deploying Java Image with Helm in Kubernetes Cluster
+on:
+  workflow_call:
+     inputs:
+      environment:
+        description: 'provide environment for using login of Azure subscription '
+        required: true
+        type: string
+      chartmodulename:
+        description: 'specify the chart module name of application which need to deploy'
+        required: true
+        type: string
+      image:
+        description: 'Name of Docker image'
+        required: true
+        type: string
+      helmversion:
+        description: 'provide helm version'
+        required: false
+        default: 'v3.6.3'
+        type: string
+      clustername: 
+        description: 'provide cluster name where need to deploy'
+        required: false
+        type: string
+        default: 'Team2KubCluName'
+      resourcegroupname: 
+        description: 'provide azure resource groupname'
+        required: false
+        type: string
+        default: 'Team2'  
+     secrets:
+      DOCKERUSER:
+        required: true  
+      DOCKERPASSWORD:
+        required: true 
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      
+    - name: Set up Helm
+      uses: azure/setup-helm@v1
+      with:
+        version: ${{ inputs.helmversion }} 
+        
+    - name: Install dependencies
+      run: helm dependency update ./${{ inputs.chartmodulename }}
+         
+    - name: Log in to Docker Hub
+      run: docker login -u $dockeruser -p $dockerpassword    
+      env:
+        dockeruser: ${{ secrets.DOCKERUSER }}
+        dockerpassword: ${{ secrets.DOCKERPASSWORD }}
+
+    - name: Pull Docker image
+      run: docker pull $dockeruser/${{ inputs.image }}
+      env:
+        dockeruser: ${{ secrets.DOCKERUSER }}
+      
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+          creds: ${{ secrets.NAVEEN538_AZURE_CREDENTIALS }}  
+          
+    - name: Set up Kubernetes context
+      uses: azure/aks-set-context@v1
+      with:
+        creds: ${{ secrets.NAVEEN538_AZURE_CREDENTIALS }}
+        cluster-name: ${{ inputs.clustername }}
+        resource-group: ${{ inputs.resourcegroupname }}  
+        
+    - name: Deploy chart
+      run: helm upgrade --install deployjavaimagewithhelm ./${{ inputs.chartmodulename }}
