@@ -71,10 +71,10 @@ jobs:
       env:
         dockeruser: ${{ secrets.DOCKERUSER }}    
 
-    - name: Pull Docker image
-      run: docker pull $dockeruser/${{ inputs.image }}:${{ inputs.imageversion }}
-      env:
-        dockeruser: ${{ secrets.DOCKERUSER }}
+    #- name: Pull Docker image
+    #  run: docker pull $dockeruser/${{ inputs.image }}:${{ inputs.imageversion }}
+    #  env:
+    #    dockeruser: ${{ secrets.DOCKERUSER }}
       
     - name: Azure Login
       uses: azure/login@v1
