@@ -42,7 +42,7 @@ jobs:
         
       - name: Copy tfstate file to kubernetestffilesfolder
         run: |
-          cp tfstatefiles/terraform.tfstate .
+          if [ -f "tfstatefiles/terraform.tfstate" ]; then cp tfstatefiles/terraform.tfstate .; fi
           
       - name: List all files under kubernetestffilesfolder
         run: ls -lrt   
