@@ -92,7 +92,7 @@ jobs:
         dockerpassword: ${{ secrets.DOCKERPASSWORD }}
         
     - name: Tag Docker image
-      run: docker tag $dockeruser/${{ inputs.image }}:"templatestversion" $dockeruser/${{ inputs.image }}:$project_version
+      run: docker tag $dockeruser/${{ inputs.image }}:templatestversion $dockeruser/${{ inputs.image }}:$project_version
       env:
         project_version: ${{ steps.string.outputs.lowercase }}
         dockeruser: ${{ secrets.DOCKERUSER }}
