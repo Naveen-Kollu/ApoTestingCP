@@ -97,11 +97,12 @@ jobs:
         project_version: ${{ steps.string.outputs.lowercase }}
         dockeruser: ${{ secrets.DOCKERUSER }}
 
-    - name: Push Docker Image to Docker Hub
+    - name: Push Docker Image to Docker Hub with latest tag in incremental
       run: docker push $dockeruser/${{ inputs.image }}:${{ steps.string.outputs.lowercase }}
       env:
         dockeruser: ${{ secrets.DOCKERUSER }}
-    - name: Push Docker latest Image to Docker Hub
+        
+    - name: Push Docker Image to Docker Hub with latest tag
       run: docker push $dockeruser/${{ inputs.image }}:latest
       env:
         dockeruser: ${{ secrets.DOCKERUSER }}
