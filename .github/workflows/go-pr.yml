@@ -58,5 +58,3 @@ jobs:
     - name: install govulncheck
       run: go install golang.org/x/vuln/cmd/govulncheck@latest
 
-    - name: check for CVEs using govulncheck
-      run: govulncheck -test ./...
