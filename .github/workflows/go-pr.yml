@@ -1,0 +1,62 @@
+name: Build and test PR for Go Lang code
+run-name: ${{ github.actor }} is running Build and Test on PR
+
+on:
+  workflow_call:
+    inputs:
+      language:
+        description: 'Programming language used to run this build'
+        required: true
+        type: string
+      version:
+        description: 'Provide Go version which should be used for build the Artifact'
+        required: true
+        default: '1.19.4'
+        type: string
+
+jobs:
+  lint:
+    if: ${{ inputs.language == 'Go' }}
+
+    name: Checks code quality
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ inputs.version }}
+
+    - name: Run linters
+      uses: golangci/golangci-lint-action@v3
+      with:
+        version: latest
+
+  build:
+    if: ${{ inputs.language == 'Go' }}
+
+    name: Build and Unit Test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Install go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ inputs.version }}
+
+    - name: Build code
+      run: go build -v ./...
+
+    - name: Unit tests
+      run: go test -race -v -covermode=atomic ./...
+
+    - name: install govulncheck
+      run: go install golang.org/x/vuln/cmd/govulncheck@latest
+
+    - name: check for CVEs using govulncheck
+      run: govulncheck -test ./...
