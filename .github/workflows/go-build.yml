@@ -1,0 +1,106 @@
+name: Build and Publish GoLang microservice to Artifact Registry
+run-name: ${{ github.actor }} is running Build and Publish of GoLang microservice to Artifact Registry
+
+on:
+  workflow_call:
+    inputs:
+      language:
+        description: 'Programming language used to run this build'
+        required: true
+        type: string
+      image:
+        description: 'Name of Docker image'
+        required: true
+        type: string
+      gar-location:
+        description: 'Artifact Registry Location'
+        required: true
+        type: string
+      full-image:
+        description: 'Full path to Docker image without version info'
+        required: true
+        type: string
+      dockerfile:
+        description: 'Name of the Dockerfile used for building the image'
+        required: false
+        default: 'Dockerfile'
+        type: string
+    secrets:
+      GKE_SA_KEY:
+        required: true
+
+jobs:
+  build:
+    if: ${{ inputs.language == 'Go' }}
+
+    name: Build and Publish image
+    runs-on: ubuntu-latest
+
+    steps:
+    # Setup environment
+    - name: Check that pipeline request is coming from main branch
+      if: github.ref_name != 'main'
+      run: echo "Attempt to run pipeline from branch that is not main"; exit 1
+
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Get latest Repository tag
+      id: tag
+      run: |
+        LATEST_TAG=`git describe --tags --abbrev=0`
+        echo "latest-tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+
+    - name: Change tag to lowercase
+      id: string
+      uses: ASzc/change-string-case-action@v5
+      with:
+        string: ${{ steps.tag.outputs.latest-tag }}
+
+    - name: Error if dev/test release does not contain snapshot tag
+      if:  contains(steps.string.outputs.lowercase, 'snapshot') == false
+      run: echo "dev/test build should have snapshot" ; exit 1
+
+    - name: Authenticate with Google
+      id: auth
+      uses: google-github-actions/auth@v0.8.1
+      with:
+        credentials_json: ${{ secrets.GKE_SA_KEY }}
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1.0.1
+
+    - name: Use gcloud CLI
+      run: |
+        gcloud info
+        gcloud config list project
+
+    - name: Configure Docker to use the gcloud command-line tool as a credential helper for authentication
+      run: gcloud --quiet auth configure-docker $GAR_URL
+      env:
+        GAR_URL: ${{ inputs.gar-location }}.pkg.dev
+
+    - name: Build
+      run: |-
+        echo $GITHUB_SHA
+        echo $GITHUB_REF 
+        docker build \
+          --file ${{ inputs.dockerfile }} \
+          --tag "$IMAGE_LOCATION:$project_version" \
+          --build-arg GITHUB_SHA="$GITHUB_SHA" \
+          --build-arg GITHUB_REF="$GITHUB_REF" \
+          .
+      env:
+        project_version: ${{ steps.string.outputs.lowercase }}
+        IMAGE: ${{ inputs.image }}
+        IMAGE_LOCATION: ${{ inputs.full-image }}
+
+
+      # Publish image to Artifact registry
+    - name: Publish Docker image
+      run: docker push $IMAGE_LOCATION:$project_version
+      env:
+        project_version: ${{ steps.string.outputs.lowercase }}
+        IMAGE_LOCATION: ${{ inputs.full-image }}
