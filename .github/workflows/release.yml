@@ -41,9 +41,6 @@ jobs:
       with:
         fetch-depth: 0
         
-    - name: Login to Docker registry
-      run: echo "${{ secrets.DOCKERPASSWORD }}" | docker login -u ${{ secrets.DOCKERUSER }} --password-stdin    
-
     - name: Get latest Repository tag if release-tag is not specified
       if: inputs.release-tag == ''
       run: |
@@ -83,7 +80,7 @@ jobs:
       with:
         force: true
         tags: true
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        github_token: ${{ secrets.SNAPSHOTCREATION }}
 
 #   - name: Create a pre-release
 #    if: inputs.release == false && inputs.environment == 'test'
@@ -96,4 +93,4 @@ jobs:
       if: inputs.release == true && inputs.environment == 'prod'
       run: gh release create $RELEASE --generate-notes
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.SNAPSHOTCREATION }}
