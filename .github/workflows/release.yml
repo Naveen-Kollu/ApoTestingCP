@@ -1,0 +1,96 @@
+name: create-github-release
+run-name: ${{ github.actor }} is running 'create-github-release'
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        default: 'test'
+        required: false
+        type: string
+      release:
+        description: 'Boolean indicating if this is release or snapshot version'
+        default: false
+        required: false
+        type: boolean
+      release-tag:
+        description: 'Tag used to create release from'
+        required: false
+        type: string
+
+jobs:
+  deploy:
+    name: Create a git release
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+    # Error: if release request does not come from main
+    - name: Error if release request is not coming from main branch
+      if: github.ref_name != 'main'
+      run: echo "Attempt to deploy release from branch that is not main"; exit 1
+
+    # Error: if it is a release and env is not prod
+    - name:  Error if release does not happen from 'prod'
+      if: inputs.release != true || inputs.environment != 'prod'
+      run: echo "Attempt to release from non-production env"; exit 1
+
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Get latest Repository tag if release-tag is not specified
+      if: inputs.release-tag == ''
+      run: |
+        LATEST_TAG=`git describe --tags --abbrev=0`
+        echo "TAG=$LATEST_TAG" >> $GITHUB_ENV
+
+    - name: Put tag to outputs if release-tag is specified
+      if: inputs.release-tag != ''
+      run: echo "TAG=${{ inputs.release-tag }}" >> $GITHUB_ENV
+
+    - name: Change tag to lowercase
+      id: string
+      uses: ASzc/change-string-case-action@v5
+      with:
+        string: ${{ env.TAG }}
+
+    - name: Format release tag
+      id: release
+      run: echo "RELEASE=$(echo $tag | sed -e 's|-snapshot.*||g')" >> $GITHUB_ENV
+      env:
+        tag: ${{ steps.string.outputs.lowercase }}
+
+    # only if env='prod'
+    - name: Tag Git repo with release tag
+      if: inputs.environment == 'prod' 
+      run: |
+       if [inputs.environment == 'prod']; then
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git tag ${{ env.RELEASE }} ${{ env.TAG }}
+       fi
+    
+    # only if env='prod'
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      if: inputs.environment == 'prod'
+      with:
+        force: true
+        tags: true
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+
+#   - name: Create a pre-release
+#    if: inputs.release == false && inputs.environment == 'test'
+#      run: gh release create $RELEASE --prerelease --generate-notes
+#     env:
+#       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # only if env='prod'
+    - name: Create a release
+      if: inputs.release == true && inputs.environment == 'prod'
+      run: gh release create $RELEASE --generate-notes
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
