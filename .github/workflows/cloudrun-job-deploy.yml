@@ -1,0 +1,158 @@
+name: Deploy CloudRun Job
+run-name: ${{ github.actor }} is running Deploy of Docker image to CloudRun
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        default: 'dev'
+        required: false
+        type: string
+      release:
+        description: 'Boolean indicating if this is release or snapshot version'
+        default: false
+        required: true
+        type: boolean
+      region:
+        description: 'Region in which to create deployment'
+        default: 'europe-north1'
+        required: false
+        type: string
+      image:
+        description: 'Name of Docker image'
+        required: true
+        type: string
+      full-image:
+        description: 'Full path to Docker image without version info'
+        required: true
+        type: string
+      cron-schedule:
+        description: 'Cron expression to run this schedule'
+        required: true
+        type: string
+      secret-values:
+        description: 'Secret from secret-manager that should be attached to the job'
+        required: true
+        type: string
+    secrets:
+      GCP_DEPLOY_KEY:
+        required: true
+
+jobs:
+  deploy:
+    name: Deploy CloudRun Job in ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+    - name: Check that pipeline request is coming from main branch
+      if: github.ref_name != 'main'
+      run: echo "Attempt to run pipeline from branch that is not main"; exit 1
+
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Authenticate with Google
+      id: auth
+      uses: google-github-actions/auth@v0.8.1
+      with:
+        credentials_json: ${{ secrets.GCP_DEPLOY_KEY }}
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1.0.1
+      with:
+        install_components: "alpha, beta"
+
+    - name: Use gcloud CLI
+      run: |
+        gcloud info
+        gcloud config list project
+
+    - name: Check gcloud
+      run: |
+        gcloud config list project 
+        gcloud scheduler jobs list --location europe-west3  --quiet
+        gcloud beta run jobs list --region ${{ inputs.region }} --quiet
+        
+
+    - name: Get latest Repository tag
+      id: tag
+      run: |                                   
+        LATEST_TAG=`git describe --tags --abbrev=0`
+        echo "latest-tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+
+    - name: Check if this is release build
+      if: contains(steps.tag.outputs.latest-tag, 'snapshot') &&  inputs.release
+      run: echo "Attempt to deploy release with snapshot version in Tag name"; exit 1
+
+    - name: Change tag to lowercase
+      id: string
+      uses: ASzc/change-string-case-action@v5
+      with:
+        string: ${{ steps.tag.outputs.latest-tag }}
+
+    - name: Delete cloud run job  and schedule
+      run: |
+        
+        schedule_list=$(gcloud scheduler jobs list --location europe-west3  --quiet)
+        schedule_match=0 
+        echo $schedule_list | grep ${{ inputs.image }}-schedule || schedule_match=$?;
+        if [[ $schedule_match -eq 0 ]]; then
+          echo "schedule found .... schedule will be deleted";
+          gcloud scheduler jobs delete ${{ inputs.image }}-schedule --location europe-west3  --quiet
+          sleep 10
+          echo "schedular deleted"
+        elif [[ $schedule_match -eq 1 ]] ; then
+          echo "schedule not found";
+        else
+          echo "some error occurred $schedule_match"
+          (exit  $schedule_match)
+        fi
+        
+        job_list=$(gcloud beta run jobs list --region ${{ inputs.region }}  --quiet) 
+        job_match=0 
+        echo $job_list | grep ${{ inputs.image }}-job || job_match=$?;
+        if [[ $job_match -eq 0 ]]; then
+          echo "job found .... job will be deleted";
+          gcloud beta run jobs delete ${{ inputs.image }}-job  --region ${{ inputs.region }}  --quiet
+           sleep 10
+           echo "cloud run job deleted"
+        elif [[ $job_match -eq 1 ]] ; then
+          echo "job not found";
+        else
+          echo "some error occurred $job_match"
+          (exit  $job_match)
+        fi
+        
+
+    - name: Create cloud run job and schedule
+      run: |
+        # create the job
+        gcloud beta run jobs create ${{ inputs.image }}-job  \
+          --image ${{ inputs.full-image }}:${{steps.string.outputs.lowercase}} \
+          --tasks 1 \
+          --max-retries 3 \
+          --task-timeout 5m \
+          --memory 512Mi \
+          --labels env=${{ inputs.environment }} \
+          --region ${{ inputs.region }}  \
+          --set-secrets=${{ inputs.secret-values }}
+        # https://cloud.google.com/sdk/gcloud/reference/beta/run/jobs/create#--set-secrets  
+
+        sleep 3
+
+        # create the schedule
+        gcloud scheduler jobs create http ${{ inputs.image }}-schedule \
+          --location europe-west3 \
+          --schedule="${{ inputs.cron-schedule }}" \
+          --time-zone=Europe/Oslo \
+          --uri="https://${{ inputs.region }}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${{ secrets.GKE_PROJECT_NAME }}/jobs/${{ inputs.image }}-job:run" \
+          --http-method POST \
+          --oauth-service-account-email ${{ secrets.GKE_PROJECT_NUMBER }}-compute@developer.gserviceaccount.com
+        
+        sleep 10
+        gcloud scheduler jobs list --location europe-west3  --quiet
+        gcloud beta run jobs list --region ${{ inputs.region }}  --quiet
