@@ -25,9 +25,9 @@ on:
         required: false
         default: 'Dockerfile'
         type: string
-    secrets:
-      GKE_SA_KEY:
-        required: true
+    # secrets:
+    #   GKE_SA_KEY:
+    #     required: true
 
 jobs:
   build:
@@ -63,44 +63,58 @@ jobs:
       if:  contains(steps.string.outputs.lowercase, 'snapshot') == false
       run: echo "dev/test build should have snapshot" ; exit 1
 
-    - name: Authenticate with Google
-      id: auth
-      uses: google-github-actions/auth@v0.8.1
-      with:
-        credentials_json: ${{ secrets.GKE_SA_KEY }}
+    - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1  
 
-    - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v1.0.1
+     - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./${{ inputs.dockerfile }}
+          push: true
+          tags: ${{ inputs.gar-location }}:latest    
 
-    - name: Use gcloud CLI
-      run: |
-        gcloud info
-        gcloud config list project
+    # - name: Authenticate with Google
+    #   id: auth
+    #   uses: google-github-actions/auth@v0.8.1
+    #   with:
+    #     credentials_json: ${{ secrets.GKE_SA_KEY }}
 
-    - name: Configure Docker to use the gcloud command-line tool as a credential helper for authentication
-      run: gcloud --quiet auth configure-docker $GAR_URL
-      env:
-        GAR_URL: ${{ inputs.gar-location }}.pkg.dev
+    # - name: Set up Cloud SDK
+    #   uses: google-github-actions/setup-gcloud@v1.0.1
 
-    - name: Build
-      run: |-
-        echo $GITHUB_SHA
-        echo $GITHUB_REF 
-        docker build \
-          --file ${{ inputs.dockerfile }} \
-          --tag "$IMAGE_LOCATION:$project_version" \
-          --build-arg GITHUB_SHA="$GITHUB_SHA" \
-          --build-arg GITHUB_REF="$GITHUB_REF" \
-          .
-      env:
-        project_version: ${{ steps.string.outputs.lowercase }}
-        IMAGE: ${{ inputs.image }}
-        IMAGE_LOCATION: ${{ inputs.full-image }}
+    # - name: Use gcloud CLI
+    #   run: |
+    #     gcloud info
+    #     gcloud config list project
+
+    # - name: Configure Docker to use the gcloud command-line tool as a credential helper for authentication
+    #   run: gcloud --quiet auth configure-docker $GAR_URL
+    #   env:
+    #     GAR_URL: ${{ inputs.gar-location }}.pkg.dev
+
+    # - name: Build
+    #   run: |-
+    #     echo $GITHUB_SHA
+    #     echo $GITHUB_REF 
+    #     docker build \
+    #       --file ${{ inputs.dockerfile }} \
+    #       --tag "$IMAGE_LOCATION:$project_version" \
+    #       --build-arg GITHUB_SHA="$GITHUB_SHA" \
+    #       --build-arg GITHUB_REF="$GITHUB_REF" \
+    #       .
+    #   env:
+    #     project_version: ${{ steps.string.outputs.lowercase }}
+    #     IMAGE: ${{ inputs.image }}
+    #     IMAGE_LOCATION: ${{ inputs.full-image }}
 
 
-      # Publish image to Artifact registry
-    - name: Publish Docker image
-      run: docker push $IMAGE_LOCATION:$project_version
-      env:
-        project_version: ${{ steps.string.outputs.lowercase }}
-        IMAGE_LOCATION: ${{ inputs.full-image }}
+    # - name: Push Docker Image to Docker Hub with latest tag in incremental
+    #   run: docker push $dockeruser/${{ inputs.image }}:${{ steps.string.outputs.lowercase }}
+    #   env:
+    #     dockeruser: ${{ secrets.DOCKERUSER }}
+        
+    # - name: Push Docker Image to Docker Hub with latest tag
+    #   run: docker push $dockeruser/${{ inputs.image }}:latest
+    #   env:
+    #     dockeruser: ${{ secrets.DOCKERUSER }}
